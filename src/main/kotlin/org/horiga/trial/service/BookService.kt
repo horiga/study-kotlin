@@ -4,17 +4,13 @@ package org.horiga.trial.service
 
 import io.r2dbc.spi.Row
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.horiga.trial.getOrThrow
 import org.horiga.trial.handler.BookHandler
-import org.horiga.trial.repository.BookEntity
-import org.horiga.trial.repository.CoroutineBookRepository
-import org.horiga.trial.repository.CoroutinePublisherRepository
-import org.horiga.trial.repository.PublisherEntity
+import org.horiga.trial.repository.CoroutineCrudBookRepository
+import org.horiga.trial.repository.CoroutineCrudPublisherRepository
 import org.horiga.trial.stringOrThrow
 import org.slf4j.LoggerFactory
 import org.springframework.r2dbc.core.DatabaseClient
-import org.springframework.r2dbc.core.awaitSingle
 import org.springframework.r2dbc.core.awaitSingleOrNull
 import org.springframework.r2dbc.core.flow
 import org.springframework.stereotype.Service
@@ -42,8 +38,8 @@ data class Book(
 
 @Service
 class BookService(
-    val bookRepository: CoroutineBookRepository,
-    val publisherRepository: CoroutinePublisherRepository,
+    val bookRepository: CoroutineCrudBookRepository,
+    val publisherRepository: CoroutineCrudPublisherRepository,
     val databaseClient: DatabaseClient
 ) {
     suspend fun findById(id: String): Book? =

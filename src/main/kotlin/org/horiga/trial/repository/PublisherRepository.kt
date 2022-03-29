@@ -19,7 +19,7 @@ data class PublisherEntity(
 )
 
 @Suppress("SqlDialectInspection")
-interface CoroutinePublisherRepository : CoroutineCrudRepository<PublisherEntity, String> {
+interface CoroutineCrudPublisherRepository : CoroutineCrudRepository<PublisherEntity, String> {
 
     @Modifying
     @Query(

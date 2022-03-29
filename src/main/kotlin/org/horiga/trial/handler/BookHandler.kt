@@ -23,6 +23,7 @@ class BookHandler(val bookService: BookService) {
             ServerResponse.ok().bodyValueAndAwait(body)
     }
 
+    // TODO: bean validation ?
     data class AddBookRequest(
         @field:NotBlank
         @field:Size(max = 20)
