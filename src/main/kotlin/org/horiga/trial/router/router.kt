@@ -67,15 +67,6 @@ class RouterConfig(
             next.handle(request)
         }
 
-    class Xfilter: HandlerFilterFunction<ServerResponse, ServerResponse> {
-        override fun filter(
-            request: ServerRequest,
-            next: HandlerFunction<ServerResponse>
-        ): Mono<ServerResponse> {
-            TODO("Not yet implemented")
-        }
-    }
-
     @Component
     class GlobalExceptionHandler(
         errorAttributes: ErrorAttributes?,
