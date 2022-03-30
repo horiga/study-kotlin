@@ -14,6 +14,8 @@ import org.springframework.http.MediaType
 import org.springframework.http.codec.ServerCodecConfigurer
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.BodyInserters
+import org.springframework.web.reactive.function.server.HandlerFilterFunction
+import org.springframework.web.reactive.function.server.HandlerFunction
 import org.springframework.web.reactive.function.server.RequestPredicates
 import org.springframework.web.reactive.function.server.RouterFunction
 import org.springframework.web.reactive.function.server.RouterFunctions
@@ -22,23 +24,55 @@ import org.springframework.web.reactive.function.server.ServerResponse
 import org.springframework.web.reactive.function.server.bodyValueAndAwait
 import org.springframework.web.reactive.function.server.coRouter
 import reactor.core.publisher.Mono
+import java.util.UUID
 
 @Configuration
 class RouterConfig(
     val bookHandler: BookHandler
 ) {
+    companion object {
+        val log = LoggerFactory.getLogger(RouterConfig::class.java)!!
+    }
+
     @Bean
-    fun routes() = coRouter {
+    fun routes(defaultRequestFilter: HandlerFilterFunction<ServerResponse, ServerResponse>) = coRouter {
         accept(MediaType.APPLICATION_JSON).nest {
             GET("/hello") { req ->
+                log.info("Request attributes: request_id={}", req.attribute("request_id"))
                 ServerResponse.ok().bodyValueAndAwait("Hello, ${req.queryParam("name").orElse("World")}!")
             }
         }
-
         accept(MediaType.APPLICATION_JSON).nest {
             GET("/books", bookHandler::findAll)
             GET("/books/{id}", bookHandler::findById)
             POST("/books", bookHandler::addBook)
+        }
+    }.filter(defaultRequestFilter)
+
+    @Bean
+    fun defaultRequestFilter(): HandlerFilterFunction<ServerResponse, ServerResponse> =
+        HandlerFilterFunction { request, next ->
+            log.info("Filter fn: {} {}", request.method(), request.path())
+
+            request.headers().header("x-study-debug")
+                .find { it.equals("forbidden", true) }?.let {
+                return@HandlerFilterFunction ServerResponse.status(HttpStatus.FORBIDDEN).build()
+            }
+
+            // test for add attributes
+            val reqId = request.headers().header("x-request-id")
+                .takeIf { it.isNotEmpty() }?.get(0) ?: UUID.randomUUID().toString()
+            request.attributes()["request_id"] = reqId
+
+            next.handle(request)
+        }
+
+    class Xfilter: HandlerFilterFunction<ServerResponse, ServerResponse> {
+        override fun filter(
+            request: ServerRequest,
+            next: HandlerFunction<ServerResponse>
+        ): Mono<ServerResponse> {
+            TODO("Not yet implemented")
         }
     }
 

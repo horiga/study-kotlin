@@ -45,6 +45,7 @@ class CoroutineBookRepository(
     suspend fun insert(entity: BookEntity) = r2dbcEntityTemplate.insert(entity).awaitSingle()
 
     suspend fun findAll() {
+
     }
 
     // TODO: develop
