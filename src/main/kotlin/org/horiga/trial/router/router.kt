@@ -1,6 +1,7 @@
 package org.horiga.trial.router
 
 import org.horiga.trial.handler.BookHandler
+import org.horiga.trial.handler.SampleHandler
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.web.WebProperties
 import org.springframework.boot.autoconfigure.web.reactive.error.AbstractErrorWebExceptionHandler
@@ -15,7 +16,6 @@ import org.springframework.http.codec.ServerCodecConfigurer
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.server.HandlerFilterFunction
-import org.springframework.web.reactive.function.server.HandlerFunction
 import org.springframework.web.reactive.function.server.RequestPredicates
 import org.springframework.web.reactive.function.server.RouterFunction
 import org.springframework.web.reactive.function.server.RouterFunctions
@@ -28,7 +28,8 @@ import java.util.UUID
 
 @Configuration
 class RouterConfig(
-    val bookHandler: BookHandler
+    val bookHandler: BookHandler,
+    val sampleHandler: SampleHandler
 ) {
     companion object {
         val log = LoggerFactory.getLogger(RouterConfig::class.java)!!
@@ -47,6 +48,13 @@ class RouterConfig(
             GET("/books/{id}", bookHandler::findById)
             POST("/books", bookHandler::addBook)
         }
+
+        accept(MediaType.APPLICATION_JSON).nest {
+            GET("/samples", sampleHandler::findAll)
+            GET("/samples/{id}", sampleHandler::findById)
+            POST("/samples", sampleHandler::add)
+        }
+
     }.filter(defaultRequestFilter)
 
     @Bean
@@ -56,8 +64,8 @@ class RouterConfig(
 
             request.headers().header("x-study-debug")
                 .find { it.equals("forbidden", true) }?.let {
-                return@HandlerFilterFunction ServerResponse.status(HttpStatus.FORBIDDEN).build()
-            }
+                    return@HandlerFilterFunction ServerResponse.status(HttpStatus.FORBIDDEN).build()
+                }
 
             // test for add attributes
             val reqId = request.headers().header("x-request-id")
