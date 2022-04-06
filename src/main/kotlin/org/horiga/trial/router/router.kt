@@ -100,6 +100,7 @@ class RouterConfig(
             val cause = getError(request)
 
             val (status, message) = when (cause) {
+                is IllegalArgumentException -> Pair(HttpStatus.BAD_REQUEST, cause.message)
                 is NoSuchElementException -> Pair(HttpStatus.NOT_FOUND, cause.message)
                 is EmptyResultDataAccessException -> Pair(HttpStatus.NOT_FOUND, cause.message)
                 else -> Pair(HttpStatus.INTERNAL_SERVER_ERROR, "unknown error")

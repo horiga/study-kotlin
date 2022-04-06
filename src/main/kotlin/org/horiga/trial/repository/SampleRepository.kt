@@ -42,7 +42,8 @@ enum class SampleType(
                 .andReading { s -> values().find { it.enumValue == s } }.converters
 
         @JsonCreator
-        fun fromJson(value: String): SampleType? = values().find { it.name.equals(value, true) }
+        fun fromJson(value: String): SampleType = values().find { it.name.equals(value, true) }
+            ?: throw IllegalArgumentException("Not one of the values accepted. source=$value")
     }
 
     @JsonValue

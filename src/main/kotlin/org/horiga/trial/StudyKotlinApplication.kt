@@ -14,11 +14,16 @@ import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.r2dbc.config.AbstractR2dbcConfiguration
+import javax.validation.Validation
 import kotlin.coroutines.AbstractCoroutineContextElement
 import kotlin.coroutines.CoroutineContext
 
 @SpringBootApplication
-class StudyKotlinApplication
+class StudyKotlinApplication {
+    companion object {
+        val globalValidator = Validation.buildDefaultValidatorFactory().validator
+    }
+}
 
 fun main(args: Array<String>) {
     runApplication<StudyKotlinApplication>(*args)
