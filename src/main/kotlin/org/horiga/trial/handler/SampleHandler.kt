@@ -21,8 +21,6 @@ class SampleHandler(
     val sampleRepository: CoroutineSampleRepository,
     val validator: Validator
 ) {
-
-    @Validated
     data class RequestBody(
         var type: SampleType,
         var enabled: Boolean = true,
@@ -31,7 +29,7 @@ class SampleHandler(
         var number: Int? = null
     )
 
-    suspend fun add(@Valid req: ServerRequest): ServerResponse {
+    suspend fun add(req: ServerRequest): ServerResponse {
         val payload = req.awaitBody(RequestBody::class, validator)
         val id = sampleRepository.insert(
             SampleEntity(
