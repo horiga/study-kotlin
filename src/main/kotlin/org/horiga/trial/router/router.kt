@@ -3,6 +3,7 @@ package org.horiga.trial.router
 import org.horiga.trial.handler.BookHandler
 import org.horiga.trial.handler.SampleHandler
 import org.slf4j.LoggerFactory
+import org.slf4j.MDC
 import org.springframework.boot.autoconfigure.web.WebProperties
 import org.springframework.boot.autoconfigure.web.reactive.error.AbstractErrorWebExceptionHandler
 import org.springframework.boot.web.reactive.error.ErrorAttributes
@@ -37,12 +38,39 @@ class RouterConfig(
 
     @Bean
     fun routes(defaultRequestFilter: HandlerFilterFunction<ServerResponse, ServerResponse>) = coRouter {
+
+        // Test slf4j MDC attributes with Kotlin coroutines.
+        filter { request, next ->
+            log.info(">> mdc-filter-function fn: {} {}", request.method(), request.path())
+
+            MDC.put("HTTP_METHOD", request.method()?.name ?: "UNKNOWN")
+            MDC.put("HTTP_URI", request.uri().toString())
+            next(request)
+        }
+
+        filter { request, next ->
+            log.info(">> request-filter-function fn: {} {}", request.method(), request.path())
+
+            request.headers().header("x-study-debug")
+                .find { it.equals("forbidden", true) }?.let {
+                    return@let ServerResponse.status(HttpStatus.FORBIDDEN).build()
+                }
+
+            val requestId = request.headers().header("x-request-id")
+                .takeIf { it.isNotEmpty() }?.get(0) ?: UUID.randomUUID().toString()
+
+            request.attributes()["request_id"] = requestId
+            MDC.put("HTTP_REQUEST_ID", requestId)
+            next(request)
+        }
+
         accept(MediaType.APPLICATION_JSON).nest {
             GET("/hello") { req ->
                 log.info("Request attributes: request_id={}", req.attribute("request_id"))
                 ServerResponse.ok().bodyValueAndAwait("Hello, ${req.queryParam("name").orElse("World")}!")
             }
         }
+
         accept(MediaType.APPLICATION_JSON).nest {
             GET("/books", bookHandler::findAll)
             GET("/books/{id}", bookHandler::findById)
@@ -55,7 +83,7 @@ class RouterConfig(
             POST("/samples", sampleHandler::add)
         }
 
-    }.filter(defaultRequestFilter)
+    }
 
     @Bean
     fun defaultRequestFilter(): HandlerFilterFunction<ServerResponse, ServerResponse> =

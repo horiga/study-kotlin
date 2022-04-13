@@ -2,7 +2,7 @@
 <configuration>
     <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
         <layout class="ch.qos.logback.classic.PatternLayout">
-            <Pattern>%date %t %highlight(%-5level) %cyan(%logger{15} [%file:%method:%line]) - %msg%n</Pattern>
+            <Pattern>%date %t %highlight(%-5level) %cyan([%file:%method:%line]) [%X{HTTP_REQUEST_ID}] [%X{HTTP_METHOD} %X{HTTP_URI}] - %msg%n</Pattern>
         </layout>
     </appender>
     <root level="DEBUG">

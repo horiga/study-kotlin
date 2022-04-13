@@ -29,9 +29,11 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
+	implementation("io.micrometer:micrometer-registry-prometheus")
 
 	// MySQL
 	implementation("io.r2dbc:r2dbc-pool")
+	implementation("io.r2dbc:r2dbc-proxy")
 	runtimeOnly("dev.miku:r2dbc-mysql")
 	runtimeOnly("mysql:mysql-connector-java")
 

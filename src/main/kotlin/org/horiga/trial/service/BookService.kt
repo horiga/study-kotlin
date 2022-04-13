@@ -9,6 +9,7 @@ import org.horiga.trial.handler.BookHandler
 import org.horiga.trial.repository.CoroutineCrudBookRepository
 import org.horiga.trial.repository.CoroutineCrudPublisherRepository
 import org.horiga.trial.stringOrThrow
+import org.horiga.trial.withR2dbcContext
 import org.slf4j.LoggerFactory
 import org.springframework.r2dbc.core.DatabaseClient
 import org.springframework.r2dbc.core.awaitSingleOrNull
@@ -42,9 +43,12 @@ class BookService(
     val publisherRepository: CoroutineCrudPublisherRepository,
     val databaseClient: DatabaseClient
 ) {
-    suspend fun findById(id: String): Book? =
-        databaseClient.sql(
-            """
+    suspend fun findById(id: String): Book? {
+        log.info(">> findById::start")
+        return withR2dbcContext {
+            log.info(">> findById::execute")
+            databaseClient.sql(
+                """
             SELECT 
               t1.id as id, 
               t1.name as name, 
@@ -53,12 +57,16 @@ class BookService(
               t1.registration_date as registration_date
             FROM book t1 LEFT JOIN publisher t2 ON t1.publisher_id = t2.id WHERE t1.id = :id LIMIT 1
         """.trimIndent()
-        )
-            .bind("id", id).map { row -> Book.from(row) }.awaitSingleOrNull()
+            ).bind("id", id).map { row -> Book.from(row) }.awaitSingleOrNull()
+        }
+    }
 
-    suspend fun allBooks(): Flow<Book> =
-        databaseClient.sql(
-            """
+    suspend fun allBooks(): Flow<Book> {
+        log.info(">> allBooks::start")
+        return withR2dbcContext {
+            log.info(">> service::allBooks::execute")
+            databaseClient.sql(
+                """
             SELECT 
               t1.id as id, 
               t1.name as name, 
@@ -68,40 +76,54 @@ class BookService(
             FROM book t1 LEFT JOIN publisher t2 ON t1.publisher_id = t2.id 
             ORDER BY t1.registration_date DESC 
         """
-        ).map { row -> Book.from(row) }.flow()
+            ).map { row -> Book.from(row) }.flow()
+        }
+    }
 
     @Transactional
     suspend fun addBook(book: BookHandler.AddBookRequest): Boolean {
 
         log.info("step-1(started)")
 
-        if (bookRepository.existsById(book.id)) {
+        val exists = withR2dbcContext {
+            log.info("step-2(default-context)")
+            bookRepository.existsById(book.id)
+        }
+        if (exists) {
             return false
         }
 
-        log.info("step-2")
+        log.info("step-3")
 
-        val publisher = publisherRepository.findFirstByNameOrderByIdDesc(book.publisherName)
+        val publisher = withR2dbcContext {
+            log.info("step-4(default-context)")
+            publisherRepository.findFirstByNameOrderByIdDesc(book.publisherName)
+        }
+
         val publisherId = if (publisher != null) {
-            log.info("Find exists publisher. publisher={}", publisher)
+            log.info("step-5")
             publisher.id
         } else {
             "P${Random.nextInt(10, 3000)}".let {
-                publisherRepository.insert(it, book.publisherName)
+                withR2dbcContext {
+                    log.info("step-5(default-context)")
+                    publisherRepository.insert(it, book.publisherName)
+                }
                 it
             }
         }
 
-        log.info("step-2-1")
+        log.info("step-6")
 
         // Rollback test
         if (book.name == "ERROR") throw IllegalStateException("Fire runtime error!!")
 
-        log.info("step-3")
+        withR2dbcContext {
+            log.info("step-7(default-context)")
+            bookRepository.insert(book.id, book.name, publisherId!!)
+        }
 
-        bookRepository.insert(book.id, book.name, publisherId!!)
-
-        log.info("step-4(finished)")
+        log.info("step-8(finished)")
 
         return true
     }

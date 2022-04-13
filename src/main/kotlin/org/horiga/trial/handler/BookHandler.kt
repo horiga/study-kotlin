@@ -1,7 +1,9 @@
 package org.horiga.trial.handler
 
 import kotlinx.coroutines.flow.Flow
+import org.horiga.trial.requestId
 import org.horiga.trial.service.BookService
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
@@ -16,6 +18,8 @@ import javax.validation.constraints.Size
 class BookHandler(val bookService: BookService) {
 
     companion object {
+        val log = LoggerFactory.getLogger(BookHandler::class.java)!!
+
         suspend inline fun <reified T : Any> success(flow: Flow<T>): ServerResponse =
             ServerResponse.ok().bodyAndAwait(flow)
 
@@ -39,6 +43,7 @@ class BookHandler(val bookService: BookService) {
     suspend fun findAll(req: ServerRequest): ServerResponse = success(bookService.allBooks())
 
     suspend fun findById(req: ServerRequest): ServerResponse {
+        log.info("bookHandler. request_id: {}", req.requestId())
         val id = req.pathVariable("id")
         return success(
             bookService.findById(id)

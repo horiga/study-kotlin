@@ -6,20 +6,22 @@ import org.springframework.web.reactive.function.server.awaitBodyOrNull
 import javax.validation.Validator
 import kotlin.reflect.KClass
 
-fun <T> Row.getOrThrow(name: String, klass: Class<T>): T {
+internal fun <T> Row.getOrThrow(name: String, klass: Class<T>): T {
     return this.get(name, klass) ?: throw NullPointerException("$name column must not NULL value.")
 }
 
-fun Row.stringOrThrow(name: String): String {
+internal fun Row.stringOrThrow(name: String): String {
     return this.get(name, String::class.java) ?: throw NullPointerException("$name column must not NULL value.")
 }
 
-suspend fun <T : Any> ServerRequest.awaitBodyOrThrow(clazz: KClass<T>, error: Throwable? = null): T {
+internal suspend fun <T : Any> ServerRequest.awaitBodyOrThrow(clazz: KClass<T>, error: Throwable? = null): T {
     return this.awaitBodyOrNull(clazz) ?: throw error ?: IllegalArgumentException("empty body")
 }
 
+internal fun ServerRequest.requestId() = this.attribute("request_id").orElse("")
+
 // bodyToMono + validation
-suspend fun <T : Any> ServerRequest.awaitBody(clazz: KClass<T>, validator: Validator, error: Throwable? = null): T {
+internal suspend fun <T : Any> ServerRequest.awaitBody(clazz: KClass<T>, validator: Validator, error: Throwable? = null): T {
 
     /*
       FIXME:

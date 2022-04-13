@@ -1,0 +1,12 @@
+version: "3"
+services:
+  redis:
+    image: grokzen/redis-cluster:5.0.12
+    environment:
+      INITIAL_PORT: 27000
+      IP: 0.0.0.0
+    ports:
+      - "27000-27005:27000-27005/tcp"
+    tty: true
+    stdin_open: true
+    privileged: true
