@@ -84,7 +84,6 @@ suspend inline fun <T> withR2dbcContext(
     noinline block: suspend CoroutineScope.() -> T,
 ) = withContext(context + r2dbcContext(), block)
 
-fun r2dbcContext() = r2dbcCoroutineDispatcher + MDCContext() + Coroutine.DefaultThreadContextElement() +
-    CoroutineName("r2dbc")
+fun r2dbcContext() = MDCContext() + r2dbcCoroutineDispatcher + CoroutineName("r2dbc")
 
 private val r2dbcCoroutineDispatcher = R2dbcObservedCoroutineDispatcher(Dispatchers.IO)
