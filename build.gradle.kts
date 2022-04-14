@@ -43,6 +43,8 @@ dependencies {
 	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
 	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j")
 
+	implementation("com.google.guava:guava:31.1-jre")
+
 	annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
 	testImplementation("org.springframework.boot:spring-boot-starter-test")

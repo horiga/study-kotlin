@@ -37,9 +37,9 @@ class R2dbcConfig(
             val log = LoggerFactory.getLogger(R2dbcMetricsExecutionListener::class.java)!!
         }
 
-        val metricsNamePrefix = "r2dbc_"
+        private val metricsNamePrefix = "r2dbc_"
 
-        val slowQueryThreshold = Duration.ofMillis(slowQueryMillis)
+        private val slowQueryThreshold = Duration.ofMillis(slowQueryMillis)!!
 
         /**
          * Full format
